@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -22,6 +22,31 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
+        
+        app.post('/posts', async (req, res)=>{
+            const data = req.body;
+            const result = await todoCollection.insertOne(data);
+            res.send(result);        
+        })
+
+        app.delete('/posts/:id', async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id : ObjectId(id)};
+            const result = await todoCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.put('/posts/:id', async (req, res) => {
+            const id = req.params.id;
+            const data = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedData = {
+              $set: data
+            }
+            const result = await todoCollection.updateOne(filter, updatedData, options);
+            res.send(result);
+          })
     } finally {
         // await client.close();
     }
